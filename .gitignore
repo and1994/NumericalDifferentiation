@@ -99,3 +99,19 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# File types to ignore
+*.pdf
+*.png
+*.jpg
+*.bak
+*~
+*.pcy
+*.docx
+*.gif
+*.xlxs
+*.zip
+*.out
+*.log
+*.aux
+*.svg
