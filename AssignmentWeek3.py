@@ -84,3 +84,5 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     
     # finally, multiplying p_dash by appropriate constants speed u is obtained 
     u = -(1/(rho*f))*p_dash
+    
+    return u
