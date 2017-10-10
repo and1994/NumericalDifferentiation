@@ -91,13 +91,86 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     # (numerical and analitycal)
     return y, u_n, u_a
     
-def order_accuracy(num=8, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
+def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
                    y_min=0.0, y_max=1e6):
-    er=np.zeros((int(num),2))
-    for i in range(int(num)):
+    num=int(num)
+    er=np.zeros((num,2))
+    for i in range(1,num+1):
         N=10**i
         y,u_n,u_a=geostrophic_wind(rho, p_a, p_b, f, L, y_min, y_max, N)
-        er[i,1] = abs(u_n[int(N/2)] - u_a[int(N/2)])
-        er[i,0] = (y_max-y_min)/N
+        er[i-1,0] = (y_max-y_min)/N
+        er[i-1,1] = abs(u_n[int(N/2)] - u_a[int(N/2)])
+    n=np.zeros(num-1)
+    for i in range(num-1):
+        n[i]=(np.log(er[i+1,1])-np.log(er[i,1]))/(np.log(er[i+1,0])-np.log(er[i,0]))
+    step=er[:,0]
+    epsilon=er[:,1]
+    plt.loglog(step,epsilon)
+    return n
+
+def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
+                     y_max=1e6, N=1e5):
+    # conversion of N to an integer, if int(N) != N then TypeError is raised
+    N = int(N)
     
-    return er  #it works but for the graph you need to type plt.loglog(err[:,0],err[:,0])
+    # initialisation of the y array
+    y = np.zeros(N+1)
+    Delta_y=(y_max - y_min)/N
+    for i in range(N+1):
+        y[i] = y_min + Delta_y*i
+    
+    # definition of the y-dependent pressure function
+    p = p_a + p_b * np.cos(y*np.pi/L)
+    
+    # initialisation of the numerical gradient of pressure
+    p_dash = np.zeros(N+1)
+    
+    
+    # first point value for the pressure gradient is obtained through 1st order
+    # forward difference formula
+    p_dash[0] = (p[1] - p[0])/Delta_y
+    
+    # values for the points with index between 1 and N-1 are obtained through 
+    # 2nd order finite differences formula, calculated by utilising a for loop
+    for i in range(1,N):
+        p_dash[i] = (p[i+1] - p[i-1])/(2*Delta_y)
+    
+    # last point value is obtained through 1st order backward difference formula
+    p_dash[N] = (p[N] - p[N-1])/Delta_y
+    
+    # multiplying p_dash by appropriate constants speed u is obtained
+    # (the n stands for numerical solution)
+    u_n = -(1 /(rho*f))*p_dash
+    
+    # defining the analytical solution to be compared with the numerical one
+    # (a stands for analytical solution)
+    u_a = (p_b*np.pi*np.sin(np.pi*y/L))/(rho*f*L)
+    
+    # returning two arrays: one for the positions and two for the speed
+    # (numerical and analitycal)
+    return y, u_n, u_a
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
