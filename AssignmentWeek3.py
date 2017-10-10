@@ -29,7 +29,7 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     if not(isinstance(float(p_a),float) and float(p_a) > 0):
         raise TypeError('Error in geostrophic_wind: Argument rho to \
                         geostrophic_wind should be a positive float')
-    if not(isinstance(float(p_b),float) and float(p_b) > 0):   # >0 is it necessary?
+    if not(isinstance(float(p_b),float) and float(p_b) > 0):
         raise TypeError('Error in geostrophic_wind: Argument rho to \
                         geostrophic_wind should be a positive float')
     if p_a<p_b:
@@ -49,9 +49,7 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
         raise TypeError('Error in geostrophic_wind: Argument y_max to \
                         geostrophic_wind should be a float and greater\
                         than y_min')
-    if not(callable(f)):
-        raise Exception('Error in geostrophic_wind: A callable function must be sent\
-        to integrate')
+
     
     # conversion of N to an integer, if int(N) != N then TypeError is raised
     N=int(N)
@@ -72,7 +70,7 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     
     # first point value for the pressure gradient is obtained through 1st order
     # forward difference formula
-    p_dash[0]=(p[1]-p[0])/(Delta_y)
+    p_dash[0]=(p[1]-p[0])/Delta_y
     
     # values for the points with index between 1 and N-1 are obtained through 
     # 2nd order finite differences formula, calculated by utilising a for loop
@@ -80,9 +78,15 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
         p_dash[i]=(p[i+1]-p[i-1])/(2*Delta_y)
     
     # last point value is obtained through 1st order backward difference formula
-    p_dash[N]=(p[N]-p[N-1])/(Delta_y)
+    p_dash[N]=(p[N]-p[N-1])/Delta_y
     
     # finally, multiplying p_dash by appropriate constants speed u is obtained 
     u = -(1/(rho*f))*p_dash
     
-    return u
+    # returning two arrays: one for the position and the other for the speed
+    return y,u
+    
+    
+    
+    
+    
