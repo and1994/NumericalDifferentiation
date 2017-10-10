@@ -52,10 +52,13 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
 
     
     # conversion of N to an integer, if int(N) != N then TypeError is raised
-    N=int(N)
+    N = int(N)
     
     # initialisation of the y array
-    y = np.linspace(y_min, y_max, N+1)
+    y = np.zeros(N+1)
+    Delta_y=(y_max - y_min)/N
+    for i in range(N+1):
+        y[i] = y_min + Delta_y*i
     
     # definition of the y-dependent pressure function
     p = p_a + p_b * np.cos(y*np.pi/L)
@@ -63,10 +66,6 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     # initialisation of the numerical gradient of pressure
     p_dash = np.zeros(N+1)
     
-    # definition of the step used in following integration, i.e. distance
-    # between consecutive y values, which are all the same because np.linspace
-    # is utilised in y initialisation
-    Delta_y = y[1] - y[0]
     
     # first point value for the pressure gradient is obtained through 1st order
     # forward difference formula
@@ -92,4 +91,13 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     # (numerical and analitycal)
     return y, u_n, u_a
     
+def order_accuracy(num=8, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
+                   y_min=0.0, y_max=1e6):
+    er=np.zeros((int(num),2))
+    for i in range(int(num)):
+        N=10**i
+        y,u_n,u_a=geostrophic_wind(rho, p_a, p_b, f, L, y_min, y_max, N)
+        er[i,1] = abs(u_n[int(N/2)] - u_a[int(N/2)])
+        er[i,0] = (y_max-y_min)/N
     
+    return er  #it works but for the graph you need to type plt.loglog(err[:,0],err[:,0])
