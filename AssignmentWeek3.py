@@ -66,27 +66,30 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     # definition of the step used in following integration, i.e. distance
     # between consecutive y values, which are all the same because np.linspace
     # is utilised in y initialisation
-    Delta_y=y[1]-y[0]
+    Delta_y = y[1] - y[0]
     
     # first point value for the pressure gradient is obtained through 1st order
     # forward difference formula
-    p_dash[0]=(p[1]-p[0])/Delta_y
+    p_dash[0] = (p[1] - p[0])/Delta_y
     
     # values for the points with index between 1 and N-1 are obtained through 
     # 2nd order finite differences formula, calculated by utilising a for loop
     for i in range(1,N):
-        p_dash[i]=(p[i+1]-p[i-1])/(2*Delta_y)
+        p_dash[i] = (p[i+1] - p[i-1])/(2*Delta_y)
     
     # last point value is obtained through 1st order backward difference formula
-    p_dash[N]=(p[N]-p[N-1])/Delta_y
+    p_dash[N] = (p[N] - p[N-1])/Delta_y
     
-    # finally, multiplying p_dash by appropriate constants speed u is obtained 
-    u = -(1/(rho*f))*p_dash
+    # multiplying p_dash by appropriate constants speed u is obtained
+    # (the n stands for numerical solution)
+    u_n = -(1 /(rho*f))*p_dash
     
-    # returning two arrays: one for the position and the other for the speed
-    return y,u
+    # defining the analytical solution to be compared with the numerical one
+    # (a stands for analytical solution)
+    u_a = (p_b*np.pi*np.sin(np.pi*y/L))/(rho*f*L)
     
-    
-    
+    # returning two arrays: one for the positions and two for the speed
+    # (numerical and analitycal)
+    return y, u_n, u_a
     
     
