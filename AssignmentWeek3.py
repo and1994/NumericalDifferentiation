@@ -1,21 +1,24 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Code for computing geostrophic wind speed
-       1  dp
-u = - --- --
-       ρf dy
-
-p = p_a + p_b * cos(yπ/L)
-
-@author: andrea1994
-"""
-
 from __future__ import division
 import numpy as np, matplotlib.pyplot as plt
     
 def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
                      y_max=1e6, N=1e5):
+    """
+    Function for computing geostrophic wind speed (mainly2nd order accurate, 
+    1st at the endpoints)
+    
+            1   drho
+    u = - ----- ----   with p = p_a + p_b * cos(y pi/L).
+          rho f  dy
+    
+    Default values are rho = 1.0 kg/m^3, p_a = 1e5 Pa, p_b = 200.0 Pa,
+    f = 1e-4 s^-1, L = 2.4e6 m, y_min = 0.0 m, y_max = 1e6 m, N = 1e5.
+    This function returns three arrays:
+        1) positions (distance y from origin)
+        2) numerical-obtained wind speed values
+        3) analytical wind speed values
+    
+    """
     # first, the arguments given to the function are tested
     if N<=0:
         raise ValueError('Error in geostrophic_wind: Argument N to \
@@ -93,6 +96,50 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     
 def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
                    y_min=0.0, y_max=1e6):
+    """
+    This function calculates the order of convergence of the differentiation
+    carried out in the function geostrophic_wind(). It takes as parameter num,
+    which sets the maximum number of steps in which the range where the solution
+    is searched should be divided to N = 10^num. This generates a series of
+    points (step width, absolute error) which is plotted on a loglog graph.
+    Finally, it returns an array with the values of the order of convergence for
+    each couple of consecutive points.
+    
+    """
+    # first, the arguments given to the function are tested
+    if num<=0:
+        raise ValueError('Error in order_accuracy: Argument num to \
+                         order_accuracy should be > 0')
+    if not(int(num) == num):
+        raise ValueError('Error in order_accuracy: Argument num to \
+                        order_accuracy should be an integer')
+    if not(isinstance(float(rho),float) and float(rho) > 0):
+        raise TypeError('Error in order_accuracy: Argument rho to \
+                        order_accuracy should be a positive float')
+    if not(isinstance(float(p_a),float) and float(p_a) > 0):
+        raise TypeError('Error in order_accuracy: Argument rho to \
+                        order_accuracy should be a positive float')
+    if not(isinstance(float(p_b),float) and float(p_b) > 0):
+        raise TypeError('Error in order_accuracy: Argument rho to \
+                        order_accuracy should be a positive float')
+    if p_a<p_b:
+        raise ValueError('Error in order_accuracy: Argument p_b to\
+                         order_accuracy should be smaller than p_a')
+    if not(isinstance(float(f),float) and float(f) > 0):
+        raise TypeError('Error in order_accuracy: Argument f to \
+                        order_accuracy should be a positive float')
+    if not(isinstance(float(L),float) and float(L) > 0):
+        raise TypeError('Error in order_accuracy: Argument L to \
+                        order_accuracy should be a positive float')
+    if not(isinstance(float(y_min),float) and y_max>y_min):
+        raise TypeError('Error in order_accuracy: Argument y_min to \
+                        order_accuracy should be a float and smaller\
+                        than y_max')
+    if not(isinstance(float(y_max),float) and y_min<y_max):
+        raise TypeError('Error in order_accuracy: Argument y_max to \
+                        order_accuracy should be a float and greater\
+                        than y_min')
+
     
     num=int(num)   # making sure that num is an integer
     
@@ -127,6 +174,57 @@ def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
 
 def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
                      y_max=1e6, N=1e5):
+    """
+    Function for computing geostrophic wind speed (3rd order accurate, 
+    2nd between the N-5th and N-1th points, 1st for the last point)
+    
+            1   drho
+    u = - ----- ----   with p = p_a + p_b * cos(y pi/L).
+          rho f  dy
+    
+    Default values are rho = 1.0 kg/m^3, p_a = 1e5 Pa, p_b = 200.0 Pa,
+    f = 1e-4 s^-1, L = 2.4e6 m, y_min = 0.0 m, y_max = 1e6 m, N = 1e5.
+    This function returns three arrays:
+        1) positions (distance y from origin)
+        2) numerical-obtained wind speed values
+        3) analytical wind speed values
+    
+    """
+    # first, the arguments given to the function are tested
+    if N<=0:
+        raise ValueError('Error in geowind_accurate: Argument N to \
+                         geowind_accurate should be > 0')
+    if not(int(N) == N):
+        raise ValueError('Error in geowind_accurate: Argument N to \
+                        geowind_accurate should be an integer')
+    if not(isinstance(float(rho),float) and float(rho) > 0):
+        raise TypeError('Error in geowind_accurate: Argument rho to \
+                        geowind_accurate should be a positive float')
+    if not(isinstance(float(p_a),float) and float(p_a) > 0):
+        raise TypeError('Error in geowind_accurate: Argument rho to \
+                        geowind_accurate should be a positive float')
+    if not(isinstance(float(p_b),float) and float(p_b) > 0):
+        raise TypeError('Error in geowind_accurate: Argument rho to \
+                        geowind_accurate should be a positive float')
+    if p_a<p_b:
+        raise ValueError('Error in geowind_accurate: Argument p_b to\
+                         geowind_accurate should be smaller than p_a')
+    if not(isinstance(float(f),float) and float(f) > 0):
+        raise TypeError('Error in geowind_accurate: Argument f to \
+                        geowind_accurate should be a positive float')
+    if not(isinstance(float(L),float) and float(L) > 0):
+        raise TypeError('Error in geowind_accurate: Argument L to \
+                        geowind_accurate should be a positive float')
+    if not(isinstance(float(y_min),float) and y_max>y_min):
+        raise TypeError('Error in geowind_accurate: Argument y_min to \
+                        geowind_accurate should be a float and smaller\
+                        than y_max')
+    if not(isinstance(float(y_max),float) and y_min<y_max):
+        raise TypeError('Error in geowind_accurate: Argument y_max to \
+                        geowind_accurate should be a float and greater\
+                        than y_min')
+
+    
     # conversion of N to an integer, if int(N) != N then TypeError is raised
     N = int(N)
     
