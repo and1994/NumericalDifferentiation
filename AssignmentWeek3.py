@@ -93,19 +93,36 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     
 def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
                    y_min=0.0, y_max=1e6):
-    num=int(num)
+    
+    num=int(num)   # making sure that num is an integer
+    
+    # initialising array er for storing error values and relative step width
     er=np.zeros((num,2))
-    for i in range(1,num+1):
-        N=10**i
-        y,u_n,u_a=geostrophic_wind(rho, p_a, p_b, f, L, y_min, y_max, N)
-        er[i-1,0] = (y_max-y_min)/N
+    
+    # evaluating errors for different step widths, relatively to the point L/2
+    # which is located in the N/2-th position of array u_n, containing numerical
+    # solution
+    for i in range(1, num+1):
+        N=10**i     # the step width increases 10 times each iteration
+        y, u_n, u_a = geostrophic_wind(rho, p_a, p_b, f, L, y_min, y_max, N)
+        er[i-1,0] = (y_max - y_min)/N
         er[i-1,1] = abs(u_n[int(N/2)] - u_a[int(N/2)])
-    n=np.zeros(num-1)
+    
+    # initialising array n for storing order of convergence n values
+    n = np.zeros(num-1)
+    
+    # order of convergence values are calculated using each couple of
+    #consecutive points from array er
     for i in range(num-1):
-        n[i]=(np.log(er[i+1,1])-np.log(er[i,1]))/(np.log(er[i+1,0])-np.log(er[i,0]))
-    step=er[:,0]
-    epsilon=er[:,1]
+        n[i] = (np.log(er[i+1,1]) - np.log(er[i,1]))/\
+                (np.log(er[i+1,0]) - np.log(er[i,0]))
+    
+    # definition of arrays to be used in plotting the points obtained for n
+    step = er[:,0]
+    epsilon = er[:,1]
     plt.loglog(step,epsilon)
+    
+    # finally, values of n are returned for analysis
     return n
 
 def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
@@ -126,16 +143,15 @@ def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     p_dash = np.zeros(N+1)
     
     
-    # first point value for the pressure gradient is obtained through 1st order
-    # forward difference formula
-    p_dash[0] = (p[1] - p[0])/Delta_y
-    
     # values for the points with index between 1 and N-1 are obtained through 
     # 2nd order finite differences formula, calculated by utilising a for loop
-    for i in range(1,N):
-        p_dash[i] = (p[i+1] - p[i-1])/(2*Delta_y)
+    for i in range(0,N-5):
+        p_dash[i] = (9*p[i+4] - 16*p[i+3] - 36*p[i+2] + 144*p[i+1] - 101*p[i])/(60*Delta_y)
     
-    # last point value is obtained through 1st order backward difference formula
+    # last points values are obtained 
+    for i in range(N-5,N):
+        p_dash[i] = (p[i+1] - p[i-1])/(2*Delta_y)
+        
     p_dash[N] = (p[N] - p[N-1])/Delta_y
     
     # multiplying p_dash by appropriate constants speed u is obtained
