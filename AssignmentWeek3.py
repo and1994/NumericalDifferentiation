@@ -143,15 +143,17 @@ def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     p_dash = np.zeros(N+1)
     
     
-    # values for the points with index between 1 and N-1 are obtained through 
-    # 2nd order finite differences formula, calculated by utilising a for loop
+    # values for the points with index between 0 and N-6 are obtained through 
+    # 3nd order finite differences formula
     for i in range(0,N-5):
         p_dash[i] = (9*p[i+4] - 16*p[i+3] - 36*p[i+2] + 144*p[i+1] - 101*p[i])/(60*Delta_y)
     
-    # last points values are obtained 
+    # last points (N-5 to N) values are obtained through 2nd order
+    # finite differences formula
     for i in range(N-5,N):
         p_dash[i] = (p[i+1] - p[i-1])/(2*Delta_y)
-        
+    
+    # last point value is obtained through 1st order backward difference formula    
     p_dash[N] = (p[N] - p[N-1])/Delta_y
     
     # multiplying p_dash by appropriate constants speed u is obtained
