@@ -75,7 +75,7 @@ def geostrophic_wind(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     p_dash[0] = (p[1] - p[0])/Delta_y
     
     # values for the points with index between 1 and N-1 are obtained through 
-    # 2nd order finite differences formula, calculated by utilising a for loop
+    # 2nd order finite difference formula, calculated by utilising a for loop
     for i in range(1,N):
         p_dash[i] = (p[i+1] - p[i-1])/(2*Delta_y)
     
@@ -107,9 +107,9 @@ def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
     
     """
     # first, the arguments given to the function are tested
-    if num<=0:
+    if num<=1:
         raise ValueError('Error in order_accuracy: Argument num to \
-                         order_accuracy should be > 0')
+                         order_accuracy should be > 1')
     if not(int(num) == num):
         raise ValueError('Error in order_accuracy: Argument num to \
                         order_accuracy should be an integer')
@@ -167,7 +167,7 @@ def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
     # definition of arrays to be used in plotting the points obtained for n
     step = er[:,0]
     epsilon = er[:,1]
-    plt.loglog(step,epsilon)
+    plt.loglog(step, epsilon)
     
     # finally, values of n are returned for analysis
     return n
@@ -242,9 +242,10 @@ def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     
     
     # values for the points with index between 0 and N-6 are obtained through 
-    # 3nd order finite differences formula
+    # 3nd order finite difference formula
     for i in range(0,N-5):
-        p_dash[i] = (9*p[i+4] - 16*p[i+3] - 36*p[i+2] + 144*p[i+1] - 101*p[i])/(60*Delta_y)
+        p_dash[i] = (9*p[i+4] - 16*p[i+3] - 36*p[i+2] + 144*p[i+1] \
+                                                      - 101*p[i])/(60*Delta_y)
     
     # last points (N-5 to N) values are obtained through 2nd order
     # finite differences formula
@@ -266,7 +267,106 @@ def geowind_accurate(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
     # (numerical and analitycal)
     return y, u_n, u_a
     
+def geowind_interpol(rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, y_min=0.0, \
+                     y_max=1e6, N=1e5):
+    """
+    Function for computing geostrophic wind speed (4th order accurate, 
+    endpoints not computed)
     
+            1   drho
+    u = - ----- ----   with p = p_a + p_b * cos(y pi/L).
+          rho f  dy
+    
+    Default values are rho = 1.0 kg/m^3, p_a = 1e5 Pa, p_b = 200.0 Pa,
+    f = 1e-4 s^-1, L = 2.4e6 m, y_min = 0.0 m, y_max = 1e6 m, N = 1e5.
+    This function returns three arrays:
+        1) positions (distance y from origin)
+        2) numerical-obtained wind speed values
+        3) analytical wind speed values
+    As the function makes use of a particular interpolation formula,
+    the numerical solution is found for the middle points between two
+    consecutive points in the discretisation of the distance, apart from first
+    and last couple of points close to y_max (as the formula uses two forward
+    and one backward values to compute the gradient).
+    
+    """
+    # first, the arguments given to the function are tested
+    if N<=0:
+        raise ValueError('Error in geowind_interpol: Argument N to \
+                         geowind_interpol should be > 0')
+    if not(int(N) == N):
+        raise ValueError('Error in geowind_interpol: Argument N to \
+                        geowind_interpol should be an integer')
+    if not(isinstance(float(rho),float) and float(rho) > 0):
+        raise TypeError('Error in geowind_interpol: Argument rho to \
+                        geowind_interpol should be a positive float')
+    if not(isinstance(float(p_a),float) and float(p_a) > 0):
+        raise TypeError('Error in geowind_interpol: Argument rho to \
+                        geowind_interpol should be a positive float')
+    if not(isinstance(float(p_b),float) and float(p_b) > 0):
+        raise TypeError('Error in geowind_interpol: Argument rho to \
+                        geowind_interpol should be a positive float')
+    if p_a<p_b:
+        raise ValueError('Error in geowind_interpol: Argument p_b to\
+                         geowind_interpol should be smaller than p_a')
+    if not(isinstance(float(f),float) and float(f) > 0):
+        raise TypeError('Error in geowind_interpol: Argument f to \
+                        geowind_interpol should be a positive float')
+    if not(isinstance(float(L),float) and float(L) > 0):
+        raise TypeError('Error in geowind_interpol: Argument L to \
+                        geowind_interpol should be a positive float')
+    if not(isinstance(float(y_min),float) and y_max>y_min):
+        raise TypeError('Error in geowind_interpol: Argument y_min to \
+                        geowind_interpol should be a float and smaller\
+                        than y_max')
+    if not(isinstance(float(y_max),float) and y_min<y_max):
+        raise TypeError('Error in geowind_interpol: Argument y_max to \
+                        geowind_interpol should be a float and greater\
+                        than y_min')
+
+    
+    # conversion of N to an integer, if int(N) != N then TypeError is raised
+    N = int(N)
+    
+    # initialisation of the y array to be used in numerical differentiation
+    y = np.zeros(N+1)
+    Delta_y=(y_max - y_min)/N
+    for i in range(N+1):
+        y[i] = y_min + Delta_y*i
+    
+    # definition of the y-dependent pressure function
+    p = p_a + p_b * np.cos(y*np.pi/L)
+    
+    # initialisation of the numerical gradient of pressure, which has only
+    # N-2 entries as the formula asks for two forward and one backward values
+    p_dash = np.zeros(N-2)
+    
+    
+    
+    # values for the points with index between 1+1/2 and N-2+1/2 are obtained 
+    # through 4nd order finite difference formula for the middle points between
+    # each pair of consecutive points in the array y
+    for i in range(1,N-1):
+        p_dash[i-1] = (p[i-1] - 27*p[i] + 27*p[i+1] - p[i+2])/(24*Delta_y)
+    
+    
+    # multiplying p_dash by appropriate constants speed u is obtained
+    # (the n stands for numerical solution)
+    u_n = -(1 /(rho*f))*p_dash
+    
+    # initialisation of the y_new array to be used in plotting as it is referred
+    # to the pressure gradient numerically-obtained values
+    y_new = np.zeros(u_n.size)
+    for i in range(u_n.size):
+        y_new[i] = y_min + Delta_y*(1 + 2*(i + 1))/2
+    
+    # analytical solution to be compared with the numerical one
+    # (a stands for analytical solution), evaluated at y_new points
+    u_a = (p_b*np.pi*np.sin(np.pi*y_new/L))/(rho*f*L)
+    
+    # returning two arrays: one for the positions and two for the speed
+    # (numerical and analitycal)
+    return y_new, u_n, u_a   
     
     
     
