@@ -98,10 +98,13 @@ def order_accuracy(num=6, rho=1.0, p_a=1e5, p_b=200.0, f=1e-4, L=2.4e6, \
                    y_min=0.0, y_max=1e6):
     """
     This function calculates the order of convergence of the differentiation
-    carried out in the function geostrophic_wind(). It takes as parameter num,
-    which sets the maximum number of steps in which the range where the solution
-    is searched should be divided to N = 10^num. This generates a series of
-    points (step width, absolute error) which is plotted on a loglog graph.
+    carried out in the function geostrophic_wind(). 
+    Default values are rho = 1.0 kg/m^3, p_a = 1e5 Pa, p_b = 200.0 Pa,
+    f = 1e-4 s^-1, L = 2.4e6 m, y_min = 0.0 m, y_max = 1e6 m, N = 1e5. In 
+    addition, it takes as parameter num, which sets the maximum number of steps,
+    in which the range, where the solution is searched, should be divided, 
+    to N = 10^num. This generates a series of points (step width, absolute
+    error) which is plotted on a loglog graph.
     Finally, it returns an array with the values of the order of convergence for
     each couple of consecutive points.
     
